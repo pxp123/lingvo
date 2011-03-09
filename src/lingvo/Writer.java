@@ -109,14 +109,14 @@ public class Writer {
 	static String getTable2() {
 		return "<table width=\"100%\" cellspacing=\"0\"  cellpadding=\"0\" border=\"1\">"
 				+ "<tr>"
-				+ " <th width=\"5%\">Файл</th>\n"
-				+ " <th width=\"5%\">Слово</th>"
-				+ " <th width=\"5%\">Гр. хар.</th>"
-				+ " <th width=\"5%\">Гр. хар.</th>"
-				+ " <th width=\"2%\">№</th>"
-				+ " <th width=\"50%\">Значення</th>"
-				+ " <th width=\"25%\"><i>Приклад</i></th>"
-				+ " <th width=\"3%\">Роз-ряд</th>" + "</tr>\n";
+				+ " <th width=\"5%\">Слово (1)</th>"
+				+ " <th width=\"5%\">Гр. хар. общ.(2)</th>"
+				+ " <th width=\"5%\">Гр. хар. вар.(3)</th>"
+				+ " <th width=\"2%\">№ (4)</th>"
+				+ " <th width=\"50%\">Значення (5)</th>"
+				+ " <th width=\"25%\"><i>Приклад (6)</i></th>"
+				+ " <th width=\"3%\">Роз-ряд (7)</th>" 
+				+ " <th width=\"5%\"><FONT COLOR=\"#D0D0D0\">Файл (8)</FONT></th>"+ "</tr>\n";
 	}
 
 	void writeEntry(Entry entry, String type) throws IOException {
@@ -129,9 +129,6 @@ public class Writer {
 			String row = "<tr"
 					+ color
 					+ ">\n"
-					+ "  <td valign=\"top\">"
-					+ entry.getFileName()
-					+ "</td>\n"
 					+ "  <td valign=\"top\">"
 					+ entry.getWord()
 					+ "</td>\n"
@@ -156,9 +153,11 @@ public class Writer {
 						+ " <td valign=\"top\" width=\"59%\">" + mean.getMean() + "</td>"
 						+ " <td valign=\"top\" width=\"29.5%\">" + ex + "</td>"
 						+ " <td valign=\"top\" width=\"3.5%\">" + mean.getCategory()
-						+ "</td>" + "</tr>\n";
+						+ "</td>";
 			}
-			row += "</table>\n</td>\n</tr>\n";
+			row += "</tr>\n</table>\n</td>"
+					+ "<td valign=\"top\"><FONT COLOR=\"#D0D0D0\">"
+					+ entry.getFileName() + "</FONT></td>\n" + "</tr>\n";
 			fw.write(row);
 		} else {
 			cntErr++;
@@ -168,15 +167,15 @@ public class Writer {
 					+ color
 					+ ">\n"
 					+ "  <td>"
-					+ entry.getFileName()
-					+ "</td>\n"
-					+ "  <td>"
 					+ entry.getWord()
 					+ "</td>\n"
 					+ "  <td valign=\"top\">"
 					+ (entry.getTypeList().toString().equals("[]") ? "" : entry
 							.getTypeList()) + "</td>\n" + "  <td>" + entry.getErr()
-					+ "</td>\n" + "</tr>\n");
+					+ "</td>\n" 
+					+ "<td valign=\"top\"><FONT COLOR=\"#D0D0D0\">"
+					+ entry.getFileName() + "</FONT></td>\n" 
+					+ "</tr>\n");
 		}
 		fw.flush();
 		if ((cntNoun + cntErr) % OALD.MAXFILE == 0) {

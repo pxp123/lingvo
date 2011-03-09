@@ -27,9 +27,9 @@ import nu.xom.ParsingException;
  */
 public class OALD {
 
-	public static final boolean DEBUG = false;
+	public static boolean DEBUG = false;
 
-	public static final String VERSION = "1.09";
+	public static final String VERSION = "1.10";
 
 	public static final String WINCODEPAGE = "windows-1251";
 
@@ -374,7 +374,7 @@ public class OALD {
 
 				//печатаем только если больше одного типа 21.02.11
 				entryW.getDistinctTypes();
-				//OALD.display("entryW.1: " + entryW.printPosList+ " typeList="+entryW.typeList+" distinctTypes="+ entryW.distinctTypes);
+				OALD.display("entryW.1: " + entryW.printPosList+ " typeList="+entryW.typeList+" distinctTypes="+ entryW.distinctTypes);
 				if (entryW.distinctTypes.size()>1)writeEntry(entryW, Entry.TYPEFULL); //full
 				
 				/*
@@ -468,7 +468,9 @@ public class OALD {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		String baseDir = "c:\\src\\oxford\\"; //D:\src\oxford\ 
+		
+		parseCmd(args);
+		//String baseDir = "c:\\src\\oxford\\"; //D:\src\oxford\ 
 		String srcFolder = baseDir + "xml.full\\";
 		if (DEBUG) srcFolder = baseDir + "xml.tst\\";
 		String dstFolder = baseDir + "out\\";
@@ -484,7 +486,7 @@ public class OALD {
 			System.out.println("Список файлов ...");
 			String[] list = FileUtils.dirList(srcFolder, FileUtils.DirFilter
 					.dos2unixMask("*.xml"));
-			OALD.baseDir = baseDir;
+			//OALD.baseDir = baseDir;
 			OALD.srcDir = srcFolder;
 			OALD.outDir = dstFolder;
 			OALD.outFile = "oald_" + VERSION;
@@ -520,5 +522,18 @@ public class OALD {
 			}
 			System.out.println("Stop. " + oald.getStatictic());
 		}
+	}
+
+	private static void parseCmd(String[] args) {
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].equalsIgnoreCase("-DEBUG"))
+				DEBUG = true;
+			else if (args[i].equalsIgnoreCase("-baseDir")) {
+				i++;
+				baseDir = args[i];
+				if (!baseDir.endsWith("\\")) baseDir+="\\";
+			}
+		}
+
 	}
 }

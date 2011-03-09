@@ -680,7 +680,8 @@ public class Entry {
 	//		return distinctTypes;
 	//	}
 	/**
-	 * список только уникальных типов для слова + значения.
+	 * список только уникальных типов для слова и значений
+	 * 
 	 * @return
 	 * @throws IOException
 	 */
@@ -688,16 +689,20 @@ public class Entry {
 		if (distinctTypes == null) {
 			distinctTypes = new HashSet<String>();
 			for (Value gt : typeList) {
-				distinctTypes.add(gt.value);
+				//System.out.println("gDT.1=" + gt.value + "." + gt.isVisible);
+				if (gt.isVisible)
+					distinctTypes.add(gt.value);
 			}
 			for (int j = 0; j < meanings.size(); j++) {
 				Vector<Value> tl = meanings.get(j).getTypeList();
 				for (Value gt : tl) {
-					distinctTypes.add(gt.value);
+					//System.out.println("gDT.2=" + gt.value + "." + gt.isVisible);
+					if (gt.isVisible)
+						distinctTypes.add(gt.value);
 				}
 			}
 		}
-		//System.out.println("getDistinctTypes()=" + types);
+		//System.out.println("getDistinctTypes()=" + distinctTypes);
 		return distinctTypes;
 	}
 
