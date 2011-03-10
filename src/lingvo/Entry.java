@@ -180,7 +180,7 @@ public class Entry {
 		return meanings;
 	}
 
-	public void setMeanings(Vector meanings) {
+	public void setMeanings(Vector<Meaning> meanings) {
 		this.meanings = meanings;
 	}
 
@@ -358,11 +358,13 @@ public class Entry {
 	 * @param hg
 	 * @return
 	 */
-	static Vector findTypeList(Elements hgChildren) {
-		Vector<Value> tList = new Vector();
+	static Vector<Value> findTypeList(Elements hgChildren) {
+		Vector<Value> tList = new Vector<Value>();
 		for (int i = 0; i < hgChildren.size(); i++) {
 			Element span = hgChildren.get(i);
-			//OALD.display("  span=" + span.getAttribute("class").getValue());
+			OALD.display("  span=" + span.getQualifiedName() + " class="
+					+ span.getAttribute("class") + " " + i + "/"
+					+ hgChildren.size());
 			if (span.getQualifiedName().equalsIgnoreCase("span")
 					&& span.getAttribute("class") != null
 					&& span.getAttribute("class").getValue().equals("label")) {
@@ -412,10 +414,10 @@ public class Entry {
 			Meaning mean = meanings.get(0);
 			Value etl = typeList.get(0);
 			Value mtl = mean.typeList.get(0);
-			if ((etl.value.equals(TYPEC) && etl.isVisible == false) && mtl.isVisible) {
+			if ((etl.value.equals(TYPEC) && etl.isVisible() == false) && mtl.isVisible()) {
 				etl.value = mtl.value;
-				etl.isVisible = true;
-				mtl.isVisible = false;
+				etl.setVisible(true);
+				mtl.setVisible(false);
 			}
 			if (isThe == false && mean.isThe() == true) {
 				isThe = mean.isThe();
@@ -425,7 +427,7 @@ public class Entry {
 	}
 
 	//static boolean isBlank(Vector<Value> ht) {
-	static boolean isBlank(Vector ht) {
+	static boolean isBlank(Vector<?> ht) {
 		boolean isb = true;
 		if (ht != null && ht.size() > 0) isb = false;
 		return isb;
@@ -434,7 +436,7 @@ public class Entry {
 	static boolean isBlankType(Vector<Value> ht) {
 		boolean isb = true;
 		if (ht != null
-				&& ((ht.size() > 1) || (ht.size() == 1 && ht.get(0).isVisible))) isb = false;
+				&& ((ht.size() > 1) || (ht.size() == 1 && ht.get(0).isVisible()))) isb = false;
 		return isb;
 	}
 
@@ -689,20 +691,20 @@ public class Entry {
 		if (distinctTypes == null) {
 			distinctTypes = new HashSet<String>();
 			for (Value gt : typeList) {
-				//System.out.println("gDT.1=" + gt.value + "." + gt.isVisible);
-				if (gt.isVisible)
+				System.out.println("gDT.1=" + gt.value + "." + gt.isVisible());
+				if (gt.isVisible())
 					distinctTypes.add(gt.value);
 			}
 			for (int j = 0; j < meanings.size(); j++) {
 				Vector<Value> tl = meanings.get(j).getTypeList();
 				for (Value gt : tl) {
-					//System.out.println("gDT.2=" + gt.value + "." + gt.isVisible);
-					if (gt.isVisible)
+					System.out.println("gDT.2=" + gt.value + "." + gt.isVisible());
+					if (gt.isVisible())
 						distinctTypes.add(gt.value);
 				}
 			}
 		}
-		//System.out.println("getDistinctTypes()=" + distinctTypes);
+		System.out.println("getDistinctTypes()=" + distinctTypes);
 		return distinctTypes;
 	}
 

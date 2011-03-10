@@ -14,7 +14,7 @@ public class Value {
 
 	/**если true показывать, если false нет. 
 	 * актуально для слов нет пометы вообще*/
-	boolean isVisible = false;
+	private boolean isVisible = false;
 
 	public Value(String v, boolean isV) {
 		value = v;
