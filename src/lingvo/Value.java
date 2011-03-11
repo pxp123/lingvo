@@ -37,8 +37,12 @@ public class Value {
 		this.isVisible = isVisible;
 	}
 
-	public String toString() {
+	public String toStringDisplay() {
 		return (isVisible && value != null) ? value : "";
-
+	}
+	
+	public String toString() {
+		if (OALD.DEBUG) return value + ":" + isVisible;
+		return toStringDisplay();
 	}
 }

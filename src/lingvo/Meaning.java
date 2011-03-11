@@ -39,11 +39,9 @@ public class Meaning {
 
 	boolean isThe = false;
 
-	//Boolean isThe = null;
-
 	/**список грамматических типов конкретного значения*/
 	//HashSet<String> typeList;
-	Vector<Value> typeList;
+	Vector<Value> typeList = new Vector<Value>();
 
 	/**
 	 *     2.<n-g> 
@@ -64,15 +62,19 @@ public class Meaning {
 	 *       
 	 */
 	public Meaning(Element ng, String entryPos) throws IOException {
-		OALD.display("new Meaning(ng=" + ng.getValue() + ", " + entryPos + ")");
-		Elements ngElements = ng.getChildElements();
-		typeList = Entry.findTypeList(ngElements);
+		OALD.display("Meaning(ng=" + ng.getValue() + ", " + entryPos + ")");
+		Elements ngChildren = ng.getChildElements();
+		//typeList = Entry.findTypeList(ngElements);
+		//typeList = Entry.findTypeList(ng.getChildElements("span"));
 		//if (Entry.isBlank(typeList)) typeList.add(Entry.TYPEBLANK);
 		this.entryPos = entryPos;
-		for (int i = 0; i < ngElements.size(); i++) {
-			Element el = ngElements.get(i);
+		for (int i = 0; i < ngChildren.size(); i++) {
+			Element el = ngChildren.get(i);
 			String qn = el.getQualifiedName().trim();
-			if (qn.equals("ngnum")) num = el.getValue().trim();
+			if (qn.equals("ngnum")) {
+				num = el.getValue().trim();
+				typeList = Entry.findTypeList(ng.getChildElements("span"));
+			}
 			else if (qn.equals("z")) { //classified 06780 p.270
 				Element epos = el.getFirstChildElement("pos");
 				if (epos != null) {
@@ -105,7 +107,7 @@ public class Meaning {
 				}
 			}
 		}
-		OALD.display("end new Meaning(ng=" + ng + ", " + entryPos + ")="
+		OALD.display("end Meaning(ng=" + ng + ", " + entryPos + ")="
 				+ toString());
 	}
 
@@ -120,9 +122,9 @@ public class Meaning {
 
 	public String toString() {
 		String row = "#" + num + ",  the: " + isThe + ", entryPos: " + entryPos
-				+ ", pos: " + pos + ", " + Utils2.vector2String(typeList) + ", "
-				+ getMean();
-		if (!Utils.isBlank(example)) row += " Ex: " + example;
+				+ ", pos: " + pos + ", " + typeList + ", " + getMean();
+		if (!Utils.isBlank(example))
+			row += " Ex: " + example;
 		return row;
 	}
 

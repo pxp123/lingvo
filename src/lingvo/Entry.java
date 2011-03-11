@@ -18,6 +18,8 @@ import nu.xom.Elements;
  * @since 09.03.08
  */
 public class Entry {
+	public static final String TAG_SDG = "sd-g";
+	
 	public static final String POSNOUN = "noun";
 
 	public static final String POSADJ = "adjective";
@@ -59,60 +61,60 @@ public class Entry {
 	/**"U+sing./pl. v."*/
 	public static final String TYPESING5 = "U+sing./pl. v.";
 
-	/**"usually before noun"*/
-	//public static final String TYPEIGNORE1 = "usually before noun";
-	/**"only before noun"*/
-	//public static final String TYPEIGNORE2 = "only before noun";
 	/**Список типов кот. игнорируются*/
-	static HashSet<String> ignoreTypes = null; //new HashSet<String>();
+	static HashSet<String> ignoreTypes = null;
 
 	public static final String THETHE = "THE";
 
-	/**список грамматических типов для слова*/
-	//HashSet<String> typeList = null;
-	Vector<Value> typeList = null;
+	// свойства /////////////////////////////////////////////////////////
+	/**список грамматических типов для слова:
+	 * <h-g> [<n-g>] (у слова одно значение 15.xml abalone)
+	 * 		or
+	 * <p-g> [<n-g>] (у слова несколько значений 31758.xml rose)
+	 * 		<span> <z> [<gr> <zgct>] 
+	 */
+	Vector<Value> typeList = new Vector<Value>();
 
 	HashSet<String> distinctTypes = null;
 
-	//Vector<Value> distinctTypes = null;
-
-	/**список частей речи для всего entry*/
+	/**список частей речи для всего entry (<h-g> <z> <pos>)*/
 	Properties posList = new Properties();
 
 	/** список типов которые надо печатать*/
 	HashSet<String> printPosList = new HashSet<String>();
 
-	/**имя файла*/
+	/**имя файла (конструктор)*/
 	String fileName;
 
+	/** (<h-g> <hs>)*/
+	private boolean isThe = false;
+	
+	/** первая буква слова (игнорируем the) (<h-g> <h>)*/
 	char symbol = ' ';
 
-	/**слово*/
+	/**слово (<h-g> <h>)*/
 	String word;
 
-	/**разряд*/
-	//String category = "";
-	/**список значений*/
+	/**список значений:
+	 *  <p-g> [<n-g>] (31758.xml rose)
+	 *  <h-g> [<n-g>] (126.xml absolutism) 
+ 	 */
 	Vector<Meaning> meanings = new Vector<Meaning>();
 
 	String error = "";
-
-	private boolean isThe = false;
-
-	//private Boolean isThe = null;
+	
+	static {
+		ignoreTypes = new HashSet<String>();
+		ignoreTypes.add("not before noun");
+		ignoreTypes.add("not usually before noun");
+		ignoreTypes.add("often passive");
+		ignoreTypes.add("only before noun");
+		ignoreTypes.add("usually before noun");
+		ignoreTypes.add("usually passive");
+	}
 
 	public Entry(String fileName) {
 		this.fileName = fileName;
-		if (ignoreTypes == null) {
-			ignoreTypes = new HashSet<String>();
-			ignoreTypes.add("not before noun");
-			ignoreTypes.add("not usually before noun");
-			ignoreTypes.add("often passive");
-			ignoreTypes.add("only before noun");
-			ignoreTypes.add("usually before noun");
-			ignoreTypes.add("usually passive");
-		}
-
 	}
 
 	public String getWord() {
@@ -167,7 +169,7 @@ public class Entry {
 		return add;
 	}
 
-	public String getFullMeaning() {
+	public String getAllMeaning() {
 		String full = "";
 		for (int i = 0; i < meanings.size(); i++) {
 			Meaning mean = meanings.get(i);
@@ -199,9 +201,8 @@ public class Entry {
 
 	public String toString() {
 		return fileName
-				//+ "_" + symbol 
-				+ ", " + word + ", " + Utils2.vector2String(typeList) + ", posList: "
-				+ posList;
+		// + "_" + symbol
+				+ ", " + word + ", " + typeList + ", posList: " + posList;
 	}
 
 	public String toStringFull() {
@@ -298,7 +299,22 @@ public class Entry {
 	}
 
 	/**
-	 * ищем туре для всего entry
+	 * ищем туре
+	 * 
+<span class="label">
+ <z>
+  [ 
+   <gr>
+     <zgct>C</zgct> 
+   </gr>
+  ,  
+   <gr>
+     <zgct>U</zgct> 
+   </gr>
+  ] 
+ </z>
+</span>
+	 * 
 	 * 
 	 * 1)Для слов с несколькими pos entry31758.xml rose 
 	 * 0.entry                      
@@ -355,16 +371,16 @@ public class Entry {
 	    [only before noun]
 	      
 	 * 
-	 * @param hg
+	 * @param spanList
 	 * @return
 	 */
-	static Vector<Value> findTypeList(Elements hgChildren) {
+	static Vector<Value> findTypeList(Elements spanList) {
+		OALD.display("findTypeList(): " + spanList.size());
 		Vector<Value> tList = new Vector<Value>();
-		for (int i = 0; i < hgChildren.size(); i++) {
-			Element span = hgChildren.get(i);
-			OALD.display("  span=" + span.getQualifiedName() + " class="
-					+ span.getAttribute("class") + " " + i + "/"
-					+ hgChildren.size());
+		for (int i = 0; i < spanList.size(); i++) {
+			Element span = spanList.get(i);
+			OALD.display("  "+ i + " name=" + span.getQualifiedName() + " class="
+					+ span.getAttribute("class"));
 			if (span.getQualifiedName().equalsIgnoreCase("span")
 					&& span.getAttribute("class") != null
 					&& span.getAttribute("class").getValue().equals("label")) {
@@ -374,22 +390,8 @@ public class Entry {
 					Elements grs = z.getChildElements("gr");
 					for (int j = 0; j < grs.size(); j++) {
 						Element gr = grs.get(j);
-						/*
-						Element zgct = gr.getFirstChildElement("zgct");
-						String type = null;
-						if (zgct != null) type = zgct.getValue();
-						else type = gr.getValue();
-						if (!Utils.isBlank(type)
-								&& !(type.equalsIgnoreCase("usually before noun") || type
-										.equalsIgnoreCase("only before noun"))) tList.add(type);
-						*/
-						//19.04.08
 						String type = gr.getValue();
 						OALD.totalTypeList.add(type);
-						//						if (!Utils.isBlank(type)
-						//								&& !(type.equalsIgnoreCase(TYPEIGNORE1) || type
-						//										.equalsIgnoreCase(TYPEIGNORE2))) tList.add(new Value(type,
-						//								true));
 						if (!Utils.isBlank(type) && !ignoreTypes.contains(type)) tList
 								.add(new Value(type, true));
 					}
@@ -397,8 +399,8 @@ public class Entry {
 			}
 		}
 		if (isBlankType(tList)) tList.add(new Value(TYPEC, false)); //20.04.08
-		OALD.display("end findTypeList(): " + tList);
-		return tList; //.size() == 0 ? null : tList;
+		OALD.display("end findTypeList(): " + tList.size() + tList);
+		return tList;
 	}
 
 	public Vector<Value> getTypeList() {
@@ -409,15 +411,19 @@ public class Entry {
 	 * Выполнение завершающих работ
 	 */
 	public void finalize() {
-		//если одно значение то переносим его характеристики на слово
-		if (typeList.size() == 1 && meanings.size() == 1) {
+		// если одно значение то переносим его характеристики на слово
+		if (typeList.size() == 1
+				&& meanings.size() == 1) {
 			Meaning mean = meanings.get(0);
 			Value etl = typeList.get(0);
-			Value mtl = mean.typeList.get(0);
-			if ((etl.value.equals(TYPEC) && etl.isVisible() == false) && mtl.isVisible()) {
-				etl.value = mtl.value;
-				etl.setVisible(true);
-				mtl.setVisible(false);
+			if (mean.typeList.size() > 0) {
+				Value mtl = mean.typeList.get(0);
+				if ((etl.value.equals(TYPEC) && etl.isVisible() == false)
+						&& mtl.isVisible()) {
+					etl.value = mtl.value;
+					etl.setVisible(true);
+					mtl.setVisible(false);
+				}
 			}
 			if (isThe == false && mean.isThe() == true) {
 				isThe = mean.isThe();
@@ -691,20 +697,20 @@ public class Entry {
 		if (distinctTypes == null) {
 			distinctTypes = new HashSet<String>();
 			for (Value gt : typeList) {
-				System.out.println("gDT.1=" + gt.value + "." + gt.isVisible());
+				//System.out.println("gDT.1=" + gt.value + "." + gt.isVisible());
 				if (gt.isVisible())
 					distinctTypes.add(gt.value);
 			}
 			for (int j = 0; j < meanings.size(); j++) {
 				Vector<Value> tl = meanings.get(j).getTypeList();
 				for (Value gt : tl) {
-					System.out.println("gDT.2=" + gt.value + "." + gt.isVisible());
+					//System.out.println("gDT.2=" + gt.value + "." + gt.isVisible());
 					if (gt.isVisible())
 						distinctTypes.add(gt.value);
 				}
 			}
 		}
-		System.out.println("getDistinctTypes()=" + distinctTypes);
+		//System.out.println("getDistinctTypes()=" + distinctTypes);
 		return distinctTypes;
 	}
 
@@ -753,6 +759,8 @@ public class Entry {
 	/**
 	 * анализируем <h-g> 
 	 * 
+	 * <entry> <h-g> [<n-g>] (у слова одно значение 15.xml abalone)
+	 * <entry> <p-g> [<n-g>] (у слова несколько значений 31758.xml rose)
 	 * @param entry
 	 * @return nounPos, если <0, то это не noun
 	 * @throws IOException
@@ -763,16 +771,17 @@ public class Entry {
 		//Elements hgChildren = hg.getChildElements(); //берем список
 		//OALD.printElement(1, hg, null);
 		//OALD.printChildren(2, hg.getChildElements("z"), "z list");
-		analyseHG(hg);
+		analyzeHG(hg);
 
 		if (!badEntry()) {
 			if (posList.get(POSNOUN) != null) {
 				printPosList.add(POSNOUN);
-				analyzePG(entry, hg, POSNOUN);
+				//analyzePG0(entry, hg, POSNOUN);
+				analyzePG(entry.getChildElements("p-g"), POSNOUN);
 			}
 
-			if (posList.get(POSADJ) != null && analyzePG(entry, hg, POSADJ)) printPosList
-					.add(POSADJ);
+			//if (posList.get(POSADJ) != null && analyzePG0(entry, hg, POSADJ)) printPosList.add(POSADJ);
+			if (posList.get(POSADJ) != null && analyzePG(entry.getChildElements("p-g"), POSADJ)) printPosList.add(POSADJ);
 
 			if (printPosList.size() > 0) {
 				finalize();
@@ -799,11 +808,12 @@ public class Entry {
 	 * @return
 	 * @throws IOException
 	 */
-	void analyseHG(Element hg) throws IOException {
+	void analyzeHG(Element hg) throws IOException {
 		OALD.display("analyzeHG()");
-		Elements hgChildren = hg.getChildElements(); //берем список
 		posList = findPosList(hg.getChildElements("z"));
-		setTypeList(findTypeList(hgChildren));
+		//Elements hgChildren = hg.getChildElements(); //берем список
+		//setTypeList(findTypeList(hgChildren));
+		analyzeNG(hg.getChildElements("n-g"), POSNOUN);
 
 		String the = "";
 		Element hs = hg.getFirstChildElement("hs"); //the
@@ -820,7 +830,7 @@ public class Entry {
 		//OALD.printElement(2, h, null);
 		setWord(the + h.getValue());
 
-		OALD.display("end analyseHG() type:" + getTypeList());
+		OALD.display("end analyzeHG(): " + toString());
 	}
 
 	/**
@@ -881,7 +891,7 @@ public class Entry {
 	 *         false - не найден
 	 * @throws IOException
 	 */
-	public boolean analyzePG(Element entry, Element hg, String pos)
+	public boolean analyzePG0(Element entry, Element hg, String pos)
 			throws IOException {
 		OALD.display("analyzePG(" + pos + ")");
 		boolean posPos = false;
@@ -997,7 +1007,33 @@ public class Entry {
 		OALD.display("end analyzePG(" + pos + ")=" + posPos);
 		return posPos;
 	}
+	
+	public boolean analyzePG(Elements pgList, String pos) throws IOException {
+		OALD.display("analyzePG(" + pgList.size() + ", " + pos + ")");
+		boolean posPos = false;
+		if (pgList.size() > 0) {
+			boolean isPos = analyzeNG((pgList.get(0)).getChildElements("n-g"), pos);
+			if (isPos) posPos=true;
+			isPos = analyzeSDG((pgList.get(0)).getChildElements(TAG_SDG), pos);
+			if (isPos) posPos=true;
+		}
+		OALD.display("end analyzePG(" + pgList.size() + ", " + pos + ")="
+				+ posPos);
+		return posPos;
+	}
 
+	public boolean analyzeSDG(Elements sdgList, String pos) throws IOException {
+		OALD.display("analyzeSDG(" + sdgList.size() + ", " + pos + ")");
+		boolean posPos = false;
+		for (int i = 0; i < sdgList.size(); i++) {
+			boolean isPos=analyzeNG((sdgList.get(i)).getChildElements("n-g"), pos);
+			if (isPos) posPos=true;
+		}
+		OALD.display("end analyzeSDG(" + sdgList.size() + ", " + pos + ")="
+				+ posPos);
+		return posPos;
+	}
+	
 	/**
 	 * Заполняем значения
 	 * @param ngElements
@@ -1006,16 +1042,17 @@ public class Entry {
 	 * @throws IOException
 	 */
 	boolean analyzeNG(Elements ngElements, String pos) throws IOException {
-		OALD.display("analyzeNG(" + pos + ")");
+		OALD.display("analyzeNG(" + ngElements.size()+", "+pos + ")");
 		boolean posPos = false;
 		//OALD.printChildren(2, ngElements, "ngElements");
-		if (isBlankType(getTypeList())) setTypeList(Entry.findTypeList(ngElements));
+		//if (isBlankType(getTypeList())) setTypeList(Entry.findTypeList(ngElements));
 		//OALD.display("  ng type=" + getTypeList());
 
 		for (int i = 0; i < ngElements.size(); i++) {
 			Element el = ngElements.get(i);
 			if (el.getQualifiedName().equalsIgnoreCase("n-g")) {
 				//OALD.printElement(2, el, "   <n-g> i=" + i);
+				if (isBlankType(getTypeList())) setTypeList(findTypeList(el.getChildElements("span")));
 				if (POSNOUN.equals(pos)) { //noun
 					posPos = addMeaning(el, pos); //noun
 					//posPos = true;
@@ -1029,7 +1066,7 @@ public class Entry {
 				}
 			}
 		}
-		OALD.display("end analyzeNG(" + pos + ")=" + posPos);
+		OALD.display("end analyzeNG(" + ngElements.size()+", "+pos + ")=" + posPos);
 		return posPos;
 	}
 
