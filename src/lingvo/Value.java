@@ -5,15 +5,18 @@ package lingvo;
 
 /**
  * Класс для хранения каких либо значений.
- * Например: Грамматический тип:  [C, U, pl., ...]
- *
+ * Например: Грамматический xap.: [C, U, pl., ...]
+ * 
  */
 public class Value {
-	/**Значение*/
-	String value = null; //"";
+	/** Значение */
+	String value = null; // "";
 
-	/**если true показывать, если false нет. 
-	 * актуально для слов нет пометы вообще*/
+	/**
+	 * если true показывать, если false нет.
+	 * актуально для слов где нет пометы вообще
+	 * Например: false для тех слов где вообще нет грамматический xap. (entry00142.xml, abstract, type[])
+	 */
 	private boolean isVisible = false;
 
 	public Value(String v, boolean isV) {
@@ -40,9 +43,10 @@ public class Value {
 	public String toStringDisplay() {
 		return (isVisible && value != null) ? value : "";
 	}
-	
+
 	public String toString() {
-		if (OALD.DEBUG) return value + ":" + isVisible;
+		if (OALD.DEBUG)
+			return value + ":" + isVisible;
 		return toStringDisplay();
 	}
 }

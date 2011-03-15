@@ -21,21 +21,20 @@ public class Writer {
 	}
 
 	void openFile(String prefix) throws IOException {
-		//System.out.println("file1="+prefix);
+		// System.out.println("file1="+prefix);
 		prefix = prefix.replaceAll("/", "-");
-		//prefix = prefix.replaceAll("\\", "-");
-		//System.out.println("file2="+prefix);
+		// prefix = prefix.replaceAll("\\", "-");
+		// System.out.println("file2="+prefix);
 		String fn = outDir + outFile + "_" + prefix + ".html." + outExt;
 		fw = new FileWriter(fn, true);
-		fw
-				.write("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\""
-						+ "\n\"http://www.w3.org/TR/REC-html40/strict.dtd\">"
-						+ "\n<META http-equiv=Content-Type content=\"text/html; charset=windows-1251\">\n"
-						+ "<html>\n" + "<head>\n" + "<title>" + title
-						+ "</title>\n</head>\n<body>\n");
+		fw.write("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\""
+				+ "\n\"http://www.w3.org/TR/REC-html40/strict.dtd\">"
+				+ "\n<META http-equiv=Content-Type content=\"text/html; charset=windows-1251\">\n"
+				+ "<html>\n" + "<head>\n" + "<title>" + title
+				+ "</title>\n</head>\n<body>\n");
 		writeText(title);
 		writeText("Гр. хар.: <strong>[" + type + "]</strong>   Файл: " + fn);
-		//fw.write(getTable1());
+		// fw.write(getTable1());
 		fw.write(getTable2());
 	}
 
@@ -59,21 +58,21 @@ public class Writer {
 
 	static String getTable1() {
 		/*
-		Entry              	
-		Разряд	
-		Континуати 1 [U],[C],[sing],[usually sing]
-		модель	
-		Консолідати 2	the + слово в ед. числе (нет обозначения)
-		модель	
-		Мультиплікати	3	[U],[C], отсутствие грамм. пометки
-		модель	
-		Плюрати 4	[pl],[usually pl],[often pl],[C]
-		модель	
-		Парсифікат 5	
-		модель	
-		Конгломерати 6 the + слово во мн. числе (нет обозначения)	
-		модель
-		*/
+		 * Entry
+		 * Разряд
+		 * Континуати 1 [U],[C],[sing],[usually sing]
+		 * модель
+		 * Консолідати 2 the + слово в ед. числе (нет обозначения)
+		 * модель
+		 * Мультиплікати 3 [U],[C], отсутствие грамм. пометки
+		 * модель
+		 * Плюрати 4 [pl],[usually pl],[often pl],[C]
+		 * модель
+		 * Парсифікат 5
+		 * модель
+		 * Конгломерати 6 the + слово во мн. числе (нет обозначения)
+		 * модель
+		 */
 		return "<table width=\"100%\" border=\"1\">" + "<tr>"
 				+ " <th scope=\"col\">Файл"
 				+ OALD.BR
@@ -115,16 +114,18 @@ public class Writer {
 				+ " <th width=\"2%\">№ (4)</th>"
 				+ " <th width=\"50%\">Значення (5)</th>"
 				+ " <th width=\"25%\"><i>Приклад (6)</i></th>"
-				+ " <th width=\"3%\">Роз-ряд (7)</th>" 
-				+ " <th width=\"5%\"><FONT COLOR=\"#D0D0D0\">Файл (8)</FONT></th>"+ "</tr>\n";
+				+ " <th width=\"3%\">Роз-ряд (7)</th>"
+				+ " <th width=\"5%\"><FONT COLOR=\"#D0D0D0\">Файл (8)</FONT></th>"
+				+ "</tr>\n";
 	}
 
-	void writeEntry(Entry entry, String type) throws IOException {
-		OALD.display(type + ": " + entry.toStringFull());
-		this.type = type;
-		if (fw == null) openFile("[" + type + "]_00000");
+	void writeEntry(Entry entry, String group) throws IOException {
+		OALD.display(group + ": " + entry.toStringFull());
+		this.type = group;
+		if (fw == null)
+			openFile("[" + group + "]_00000");
 		String color = "";
-		if (Utils.isBlank(entry.getErr())) {
+		if (Utils.isBlank(entry.getErr()) || Entry.GROUPWAR.equals(group)) {
 			cntNoun++;
 			String row = "<tr"
 					+ color
@@ -133,27 +134,30 @@ public class Writer {
 					+ entry.getWord()
 					+ "</td>\n"
 					+ "  <td valign=\"top\">"
-					//+ (Entry.isBlank(entry.getTypeList()) ? "" : entry.getTypeList())
-					+ (entry.getTypeList().toString().equals("[]") ? "" : entry
-							.getTypeList())
+					// + (Entry.isBlank(entry.getTypeList()) ? "" :
+					// entry.getTypeList())
+					+ (entry.getGroupList().toString().equals("[]") ? "" : entry
+							.getGroupList())
 					+ "</td>\n"
 					+ "<td colspan=\"5\"><table width=\"100%\" cellspacing=\"0\" border=\"1\">";
 			for (int i = 0; i < entry.getMeanings().size(); i++) {
 				cntMean++;
 				Meaning mean = entry.getMeanings().get(i);
 				String ex = "";
-				if (!Utils.isBlank(mean.getExample())) ex = "<i>" + mean.getExample()
-						+ "</i>";
+				if (!Utils.isBlank(mean.getExample()))
+					ex = "<i>" + mean.getExample() + "</i>";
 				row += "<tr>"
 						+ " <td valign=\"top\" width=\"5.9%\">"
-						//+ (Entry.isBlank(mean.getTypeList()) ? "" : mean.getTypeList())
-						+ (mean.getTypeList().toString().equals("[]") ? "" : mean
-								.getTypeList()) + "</td>"
-						+ " <td valign=\"top\" width=\"2.3%\">" + mean.getNum() + "</td>"
-						+ " <td valign=\"top\" width=\"59%\">" + mean.getMean() + "</td>"
+						// + (Entry.isBlank(mean.getTypeList()) ? "" :
+						// mean.getTypeList())
+						+ (mean.getGroupList().toString().equals("[]") ? ""
+								: mean.getGroupList()) + "</td>"
+						+ " <td valign=\"top\" width=\"2.3%\">" + mean.getNum()
+						+ "</td>" + " <td valign=\"top\" width=\"59%\">"
+						+ mean.getMean() + "</td>"
 						+ " <td valign=\"top\" width=\"29.5%\">" + ex + "</td>"
-						+ " <td valign=\"top\" width=\"3.5%\">" + mean.getCategory()
-						+ "</td>";
+						+ " <td valign=\"top\" width=\"3.5%\">"
+						+ mean.getCategory() + "</td>";
 			}
 			row += "</tr>\n</table>\n</td>"
 					+ "<td valign=\"top\"><FONT COLOR=\"#D0D0D0\">"
@@ -162,7 +166,7 @@ public class Writer {
 		} else {
 			cntErr++;
 			OALD.displayErr(entry.toString() + ".2: " + entry.getErr());
-			//color = " bgcolor=\"#FF9933\"";//bgcolor="#FF9933"
+			// color = " bgcolor=\"#FF9933\"";//bgcolor="#FF9933"
 			fw.write("<tr"
 					+ color
 					+ ">\n"
@@ -170,22 +174,24 @@ public class Writer {
 					+ entry.getWord()
 					+ "</td>\n"
 					+ "  <td valign=\"top\">"
-					+ (entry.getTypeList().toString().equals("[]") ? "" : entry
-							.getTypeList()) + "</td>\n" + "  <td>" + entry.getErr()
-					+ "</td>\n" 
+					+ (entry.getGroupList().toString().equals("[]") ? "" : entry
+							.getGroupList()) + "</td>\n" + "<td>" + OALD.BLANK
+					+ "</td>" + "<td>" + OALD.BLANK + "</td>" + "<td>"
+					+ entry.getErr() + "</td>\n" + "<td>" + OALD.BLANK
+					+ "</td>" + "<td>" + OALD.BLANK + "</td>"
 					+ "<td valign=\"top\"><FONT COLOR=\"#D0D0D0\">"
-					+ entry.getFileName() + "</FONT></td>\n" 
-					+ "</tr>\n");
+					+ entry.getFileName() + "</FONT></td>\n" + "</tr>\n");
 		}
 		fw.flush();
 		if ((cntNoun + cntErr) % OALD.MAXFILE == 0) {
 			closeFile("");
-			openFile("[" + type + "]_" + Utils.format('0', (cntNoun + cntErr), 5));
+			openFile("[" + group + "]_"
+					+ Utils.format('0', (cntNoun + cntErr), 5));
 		}
 	}
 
 	void writeComment(String msg) throws IOException {
-		//logErr(msg);
+		// logErr(msg);
 		fw.write("<!-- " + msg + " -->\n");
 	}
 

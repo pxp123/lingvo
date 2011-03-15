@@ -20,7 +20,7 @@ public class Meaning {
 
 	String num = "";
 
-	String altWord = ""; //альтернативное имя
+	String altWord = ""; // альтернативное имя
 
 	String link = "";
 
@@ -28,54 +28,56 @@ public class Meaning {
 
 	String example = "";
 
-	/**часть речи слова*/
-	String entryPos = "";
-
-	/**часть речи значения*/
+	/** часть речи значения */
 	String pos = "";
+	
+	/**
+	 * список ссылок на другие слова
+	 * entry01116.xml, am, gr[C:false], pos{}, xr[]
+	 * type="dic" entry="00060">-able</xh>
+	 * <h-g> <xr>
+	 */
+	//private Vector<String> xrList = new Vector<String>();
 
-	/**разряд*/
+	/** разряд */
 	String category = "";
 
 	boolean isThe = false;
 
-	/**список грамматических типов конкретного значения*/
-	//HashSet<String> typeList;
-	Vector<Value> typeList = new Vector<Value>();
+	/** список грамматических групп конкретного значения */
+	Vector<Value> groupList = new Vector<Value>();
 
 	/**
-	 *     2.<n-g> 
-	 *       3.<alt>  - альтернативное слово
-	 *       3.<ngnum> - номер значения
-	 *       3.<z> - часть речи значения
-	 *          <pos>noun</pos>
-	 *         </z> 
-	 *       3.<span class="label">  - type
-	 *       3.<d>     - значение
-	 *       3.<span class="exa">  - пример
-	 *       3.<p:xr xt="eq"> - ссылка на entry
-	             <p:sc>
-	               <p:xh type="dic" entry="05903">ceiling rose</p:xh>
-	             </p:sc>
-	          </p:xr>
-	 * @throws IOException 
-	 *       
+	 * 2.<n-g>
+	 * 3.<alt> - альтернативное слово
+	 * 3.<ngnum> - номер значения
+	 * 3.<z> - часть речи значения <pos>noun</pos> </z>
+	 * 3.<span class="label"> - группа
+	 * 3.<d> - значение
+	 * 3.<span class="exa"> - пример
+	 * 3.
+	 * <p:xr xt="eq">
+	 * - ссылка на entry
+	 * <p:sc>
+	 * <p:xh type="dic" entry="05903">
+	 * ceiling rose
+	 * </p:xh>
+	 * </p:sc> </p:xr>
+	 * 
+	 * @throws IOException
+	 * 
 	 */
-	public Meaning(Element ng, String entryPos) throws IOException {
-		OALD.display("Meaning(ng=" + ng.getValue() + ", " + entryPos + ")");
+	public Meaning(Element ng) throws IOException {
+		OALD.display("Meaning(ng=" + ng.getValue() + ")");
+		groupList = Entry.findGroupList(ng.getChildElements("span"));
+		//xrList = Entry.findXRList(ng.getChildElements("xr"));
 		Elements ngChildren = ng.getChildElements();
-		//typeList = Entry.findTypeList(ngElements);
-		//typeList = Entry.findTypeList(ng.getChildElements("span"));
-		//if (Entry.isBlank(typeList)) typeList.add(Entry.TYPEBLANK);
-		this.entryPos = entryPos;
 		for (int i = 0; i < ngChildren.size(); i++) {
 			Element el = ngChildren.get(i);
 			String qn = el.getQualifiedName().trim();
 			if (qn.equals("ngnum")) {
 				num = el.getValue().trim();
-				typeList = Entry.findTypeList(ng.getChildElements("span"));
-			}
-			else if (qn.equals("z")) { //classified 06780 p.270
+			} else if (qn.equals("z")) { // classified 06780 p.270
 				Element epos = el.getFirstChildElement("pos");
 				if (epos != null) {
 					pos = epos.getValue();
@@ -86,80 +88,54 @@ public class Meaning {
 					isThe = true;
 					OALD.writeLog("the.12=" + altWord);
 				}
-			} else if (qn.equals("d")) mean = el.getValue().trim();
+			} else if (qn.equals("d"))
+				mean = el.getValue().trim();
 			else if (qn.equals("xr")) {
 				Attribute att = el.getAttribute("xt");
-				if (att != null && att.getValue().equals("eq")) link = "= "
-						+ el.getValue().trim();
+				if (att != null && att.getValue().equals("eq"))
+					link = "= " + el.getValue().trim();
 			} else if (qn.equals("span")) {
 				for (int j = 0; j < el.getAttributeCount(); j++) {
 					Attribute att = el.getAttribute(j);
 					String attQN = att.getQualifiedName().trim();
 					String attVal = att.getValue().trim();
-					//display(prefix + "  " + j + " " + att.getQualifiedName() + "="
-					//		+ att.getValue() + "=");
+					// display(prefix + "  " + j + " " + att.getQualifiedName()
+					// + "="
+					// + att.getValue() + "=");
 					if (attQN.equals("class")) {
 						if (attVal.equals("exa")) {
 							example = el.getValue().substring(1).trim()
-									.replace('\u00c7', '*'); //'\u25CA'); //romb, ?=199=c7h
+									.replace('\u00c7', '*'); // '\u25CA');
+																// //romb,
+																// ?=199=c7h
 						}
 					}
 				}
 			}
 		}
-		OALD.display("end Meaning(ng=" + ng + ", " + entryPos + ")="
-				+ toString());
+		OALD.display("end Meaning(ng=" + ng + ")=" + toString());
 	}
 
 	public String getMean() {
 		String ret = "";
-		if (!Utils.isBlank(altWord)) ret += "<strong>" + altWord + "</strong>.";
-		//if (!Entry.isBlank(typeList)) ret += " " + typeList;
-		if (!Utils.isBlank(link)) ret += " " + link.toUpperCase();
+		if (!Utils.isBlank(altWord))
+			ret += "<strong>" + altWord + "</strong>.";
+		if (!Utils.isBlank(link))
+			ret += " " + link.toUpperCase();
 		ret += " " + mean;
 		return ret;
 	}
 
 	public String toString() {
-		String row = "#" + num + ",  the: " + isThe + ", entryPos: " + entryPos
-				+ ", pos: " + pos + ", " + typeList + ", " + getMean();
+		String row = "#" + num + ",  the: " + isThe + ", pos: " + pos
+				+ ", gr" + groupList + ", " + getMean();
 		if (!Utils.isBlank(example))
 			row += " Ex: " + example;
 		return row;
 	}
 
-	/*
-	static String getType(String row) {
-		String typ = "";
-		int pos1 = row.indexOf("[");
-		if (pos1 != -1) {
-			int pos2 = row.indexOf("]");
-			typ = row.substring(pos1 + 1, pos2);
-		}
-		return typ;
-	}
-	*/
-
-	/*
-	* получить список типов
-	*/
-	/*
-	static HashSet<String> getTypes(String row) {
-		HashSet<String> set = new HashSet<String>();
-		if (!Utils.isBlank(row)) {
-			StringTokenizer st = new StringTokenizer(row, ",");
-			while (st.hasMoreTokens()) {
-				String t2 = st.nextToken();
-				set.add(t2.trim().toUpperCase());
-			}
-		}
-		OALD.display("  getTypes(" + row + ")=" + set);
-		return set;
-	}
-	*/
-
-	public Vector<Value> getTypeList() {
-		return typeList;
+	public Vector<Value> getGroupList() {
+		return groupList;
 	}
 
 	public String getExample() {
@@ -190,7 +166,7 @@ public class Meaning {
 		return pos;
 	}
 
-	public void setTypeList(Vector<Value> tList) {
-		typeList = tList;
+	public void setGroupList(Vector<Value> tList) {
+		groupList = tList;
 	}
 }
