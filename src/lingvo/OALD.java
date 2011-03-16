@@ -142,6 +142,12 @@ public class OALD {
 		writeLog("ERR: " + msg);
 	}
 
+	static void displayWar(String msg) throws IOException {
+		// if (DEBUG) System.err.println(msg);
+		System.out.println("WAR: " + msg);
+		writeLog("WAR: " + msg);
+	}
+
 	static void printElement(int level, Element el, String msg) {
 		if (!DEBUG)
 			return;
@@ -428,12 +434,13 @@ public class OALD {
 			 * usually sing.
 			 */
 
+			if (!Utils.isBlank(entryW.warning)) {
+				cntWar++;
+				writeEntry(entryW, Entry.GROUPWAR);
+				OALD.writeLog("WAR: " + entryW.warning);
+			}
+			
 			if (Utils.isBlank(entryW.error)) {
-				if (!Utils.isBlank(entryW.warning)) {
-					cntWar++;
-					writeEntry(entryW, Entry.GROUPWAR);
-					OALD.writeLog("WAR: " + entryW.warning);
-				}
 				// if (entryW.isInitCap()) writeEntry(entryW, TYPEUPPER);
 				// //upper
 				// if (true) return;

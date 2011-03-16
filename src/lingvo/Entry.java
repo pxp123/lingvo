@@ -671,6 +671,7 @@ public class Entry {
 	 * @throws IOException
 	 */
 	public void analyzeEntry(Element entry) throws IOException {
+		//OALD.DEBUG=false;
 		OALD.display("analyzeEntry()");
 		analyzeHG(entry.getFirstChildElement("h-g"));
 		/*
@@ -693,6 +694,7 @@ public class Entry {
 				setErr("Не найдено грамматических характеристик: "
 						+ toStringFull());
 		}
+		//System.out.println("end analyzeEntry(): " + toStringFull());
 		OALD.display("end analyzeEntry(): " + toStringFull());
 	}
 
@@ -727,8 +729,7 @@ public class Entry {
 
 		posList = findPosList(hg.getChildElements("z"));
 		groupList = findGroupList(hg.getChildElements("span"));
-		if (isEmptyGroup(groupList))
-			groupList.add(new Value(GROUPC, false));
+		if (isEmptyGroup(groupList)) groupList.add(new Value(GROUPC, false));
 		//xrList = findXRList(hg.getChildElements("xr"));
 
 		analyzeNG(hg.getChildElements("n-g"));

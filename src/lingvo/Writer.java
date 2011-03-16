@@ -9,7 +9,7 @@ public class Writer {
 
 	public String outDir, outFile, outExt, title;
 
-	int cntNoun = 0, cntMean = 0, cntErr = 0;
+	int cntNoun = 0, cntMean = 0, cntErr = 0, cntWar = 0;
 
 	String type = "";
 
@@ -125,7 +125,7 @@ public class Writer {
 		if (fw == null)
 			openFile("[" + group + "]_00000");
 		String color = "";
-		if (Utils.isBlank(entry.getErr()) || Entry.GROUPWAR.equals(group)) {
+		if (Utils.isBlank(entry.getErr()) && !Entry.GROUPWAR.equals(group)) {
 			cntNoun++;
 			String row = "<tr"
 					+ color
@@ -164,8 +164,16 @@ public class Writer {
 					+ entry.getFileName() + "</FONT></td>\n" + "</tr>\n";
 			fw.write(row);
 		} else {
-			cntErr++;
-			OALD.displayErr(entry.toString() + ".2: " + entry.getErr());
+			String text;
+			if (group.equals(Entry.GROUPERR)) {
+				cntErr++;
+				text = entry.getErr();
+				OALD.displayErr(entry.toString() + ".2: " + entry.getErr());
+			} else {
+				cntWar++;
+				text = entry.warning;
+				OALD.displayWar(entry.toString() + ".2: " + entry.warning);
+			}
 			// color = " bgcolor=\"#FF9933\"";//bgcolor="#FF9933"
 			fw.write("<tr"
 					+ color
@@ -177,16 +185,16 @@ public class Writer {
 					+ (entry.getGroupList().toString().equals("[]") ? "" : entry
 							.getGroupList()) + "</td>\n" + "<td>" + OALD.BLANK
 					+ "</td>" + "<td>" + OALD.BLANK + "</td>" + "<td>"
-					+ entry.getErr() + "</td>\n" + "<td>" + OALD.BLANK
+					+ text + "</td>\n" + "<td>" + OALD.BLANK
 					+ "</td>" + "<td>" + OALD.BLANK + "</td>"
 					+ "<td valign=\"top\"><FONT COLOR=\"#D0D0D0\">"
 					+ entry.getFileName() + "</FONT></td>\n" + "</tr>\n");
 		}
 		fw.flush();
-		if ((cntNoun + cntErr) % OALD.MAXFILE == 0) {
+		if ((cntNoun + cntErr+cntWar) % OALD.MAXFILE == 0) {
 			closeFile("");
 			openFile("[" + group + "]_"
-					+ Utils.format('0', (cntNoun + cntErr), 5));
+					+ Utils.format('0', (cntNoun + cntErr+ cntWar), 5));
 		}
 	}
 
