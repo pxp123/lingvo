@@ -6,6 +6,11 @@ import java.io.UnsupportedEncodingException;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
+
 import nu.xom.Attribute;
 import nu.xom.Builder;
 import nu.xom.Document;
@@ -48,7 +53,9 @@ public class OALD {
 	static java.text.SimpleDateFormat df = new java.text.SimpleDateFormat(
 			"dd.MM.yyyy HH:mm:ss");
 
-	// FileWriter fw = null;
+	//http://www.laliluna.de/articles/log4j-tutorial.html
+	//For the standard levels, we have DEBUG < INFO < WARN < ERROR < FATAL.
+    private static final Logger log4 = Logger.getLogger( OALD.class );
 
 	static FileWriter log = null;
 
@@ -564,7 +571,25 @@ public class OALD {
 	 */
 	public static void main(String[] args) {
 
+		 // Set up a simple configuration that logs on the console.
+	     BasicConfigurator.configure();
+		//For the standard levels, we have DEBUG < INFO < WARN < ERROR < FATAL.
+	    //log4.setLevel(Level.FATAL); 
+	    log4.trace("trace");
+	    log4.debug("debug");
+	    log4.info("info");
+	    log4.warn("warn");
+	    log4.error("error");
+	    log4.fatal("fatal");
+
 		parseCmd(args);
+		log4.trace("trace2");
+	    log4.debug("debug2");
+	    log4.info("info2");
+	    log4.warn("warn2");
+	    log4.error("error2");
+	    log4.fatal("fatal2");
+
 		// String baseDir = "c:\\src\\oxford\\"; //D:\src\oxford\
 		String srcFolder = baseDir + "xml.full\\";
 		if (DEBUG)
@@ -632,6 +657,7 @@ public class OALD {
 				baseDir = args[i];
 				if (!baseDir.endsWith("\\"))
 					baseDir += "\\";
+				 PropertyConfigurator.configure(baseDir+"log4j.properties");
 			}
 		}
 
