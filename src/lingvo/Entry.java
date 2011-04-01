@@ -24,6 +24,8 @@ public class Entry {
 	public static final String POSNOUN = "noun";
 
 	public static final String POSADJ = "adjective";
+	
+	public static final String POSVERB= "verb";
 
 	public static final String GROUPOTHER = "OTHER";
 
@@ -32,6 +34,9 @@ public class Entry {
 	public static final String GROUPWAR = "WAR";
 
 	public static final String GROUPFULL = "FULL";
+	
+	/** наличие более одной группы у слова*/ 
+	public static final String GROUPGROUPS= "GROUPS";
 
 	public static final String GROUPUPPER = "UPPER";
 
@@ -837,5 +842,22 @@ public class Entry {
 			}
 		}
 		return isu;
+	}
+	
+	/**
+	 * ¬озвращаем true только в случае если pos стоит в num позиции 
+	 * @param pos
+	 * @param num
+	 * @return
+	 */
+	public boolean hasPOS(String pos, int num) {
+		boolean has = false;
+		String pn = (String) posList.get(pos);
+		if (pn != null) {
+			int posNum = Integer.parseInt(pn) + 1;
+			if (num == posNum)
+				has = true;
+		}
+		return has;
 	}
 }

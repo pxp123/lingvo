@@ -6,17 +6,16 @@ import java.io.UnsupportedEncodingException;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
-
 import nu.xom.Attribute;
 import nu.xom.Builder;
 import nu.xom.Document;
 import nu.xom.Element;
 import nu.xom.Elements;
 import nu.xom.ParsingException;
+
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 
 /**
  * 
@@ -457,8 +456,22 @@ public class OALD {
 				OALD.display("entryW.1: " + " distinctGR="
 						+ entryW.distinctGroups);
 
-				if (entryW.distinctGroups.size() > 1)
-					writeEntry(entryW, Entry.GROUPFULL); // full
+				if (entryW.distinctGroups.size() > 1) {
+					writeEntry(entryW, Entry.GROUPGROUPS);
+					if (entryW.posList.size() == 1
+							&& entryW.posList.get(Entry.POSNOUN) != null)
+						writeEntry(entryW, Entry.POSNOUN);
+					else if (entryW.hasPOS(Entry.POSVERB, 1)
+							&& entryW.hasPOS(Entry.POSNOUN, 2))
+						writeEntry(entryW, Entry.POSVERB + "&" + Entry.POSNOUN);
+					else if (entryW.hasPOS(Entry.POSADJ, 1)
+							&& entryW.hasPOS(Entry.POSNOUN, 2))
+						writeEntry(entryW, Entry.POSADJ + "&" + Entry.POSNOUN);
+					else if (entryW.hasPOS(Entry.POSNOUN, 2))
+						writeEntry(entryW, "smt&" + Entry.POSNOUN);
+					else
+						writeEntry(entryW, Entry.GROUPOTHER);
+				}
 
 				/*
 				 * writeEntry(entryW, Entry.TYPEFULL); //full
