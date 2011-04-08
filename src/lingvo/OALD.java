@@ -1,8 +1,10 @@
 package lingvo;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -12,10 +14,6 @@ import nu.xom.Document;
 import nu.xom.Element;
 import nu.xom.Elements;
 import nu.xom.ParsingException;
-
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
 
 /**
  * 
@@ -34,6 +32,8 @@ public class OALD {
 	public static boolean DEBUG = false;
 
 	public static final String VERSION = "2.00";
+	
+	public static final String RARROW= "-›";
 
 	public static final String WINCODEPAGE = "windows-1251";
 
@@ -46,20 +46,25 @@ public class OALD {
 	public static final String BR = "<br>\n";
 
 	public static final String BLANK = "&nbsp;";
+	
+	public static final ArrayList<String[]> ADJ_SUFFIXES = new ArrayList<String[]>();
 
 	public static final int MAXFILE = 500;
 
 	static java.text.SimpleDateFormat df = new java.text.SimpleDateFormat(
 			"dd.MM.yyyy HH:mm:ss");
+	static java.text.SimpleDateFormat df2 = new java.text.SimpleDateFormat(
+			"yyyy_dd_MM_HH_mm_ss");
 
 	//http://www.laliluna.de/articles/log4j-tutorial.html
 	//For the standard levels, we have DEBUG < INFO < WARN < ERROR < FATAL.
-    private static final Logger log4 = Logger.getLogger( OALD.class );
+    //private static final Logger log4 = Logger.getLogger( OALD.class );
 
 	static FileWriter log = null;
 
 	static String ls = System.getProperty("line.separator", "\n");
-
+	static String fs = System.getProperty("file.separator", "\\");
+	
 	public int cntRead = 0;
 
 	public int cntSel = 0;
@@ -80,14 +85,43 @@ public class OALD {
 
 	/** список групп */
 	public static TreeSet<String> totalGroupList = new TreeSet<String>();
+	
+	/** список частей речи */
+	public static TreeSet<String> totalPOSList = new TreeSet<String>();
 
 	public static String baseDir, srcDir, outDir, outFile, outExt, title;
 
 	static java.util.Date startDate;
+	
+	static {
+		ADJ_SUFFIXES.add(new String[] { "a" });
+		ADJ_SUFFIXES.add(new String[] { "age" });
+		ADJ_SUFFIXES.add(new String[] { "an" });
+		ADJ_SUFFIXES.add(new String[] { "ard" });
+		ADJ_SUFFIXES.add(new String[] { "ary", "ery" });
+		ADJ_SUFFIXES.add(new String[] { "er" });
+		ADJ_SUFFIXES.add(new String[] { "et" });
+		ADJ_SUFFIXES.add(new String[] { "ie", "ey", "y" });
+		ADJ_SUFFIXES.add(new String[] { "ist" });
+		ADJ_SUFFIXES.add(new String[] { "ling" });
+		ADJ_SUFFIXES.add(new String[] { "o" });
+		ADJ_SUFFIXES.add(new String[] { "ster" });
+		ADJ_SUFFIXES.add(new String[] { "dom" });
+		ADJ_SUFFIXES.add(new String[] { "hood" });
+		ADJ_SUFFIXES.add(new String[] { "ion" });
+		ADJ_SUFFIXES.add(new String[] { "ment" });
+		ADJ_SUFFIXES.add(new String[] { "our", "eur" });
+		ADJ_SUFFIXES.add(new String[] { "th" });
+		ADJ_SUFFIXES.add(new String[] { "tude" });
+		ADJ_SUFFIXES.add(new String[] { "ure" });
+		ADJ_SUFFIXES.add(new String[] { "ce", "cy" });
+		ADJ_SUFFIXES.add(new String[] { "ty" });
+		ADJ_SUFFIXES.add(new String[] { "ism" });
+		ADJ_SUFFIXES.add(new String[] { "ness" });
+	}
 
 	static void openLog() throws IOException {
 		log = new FileWriter(outDir + "_OALDlog.txt", true);
-		startDate = new java.util.Date();
 		writeLog(OALD.ls + "*** Start " + VERSION + " " + df.format(startDate));
 	}
 
@@ -124,8 +158,12 @@ public class OALD {
 			wr.closeFile(footer);
 		}
 		writers.clear();
-		writeLog("\n\tСписок групп [" + totalGroupList.size() + "]: "); // totalGroupList);
+		writeLog("\n\tСписок групп [" + totalGroupList.size() + "]: ");
 		for (String ttl : totalGroupList) {
+			writeLog(ttl);
+		}
+		writeLog("\n\tСписок частей речи [" + totalPOSList.size() + "]: ");
+		for (String ttl : totalPOSList) {
 			writeLog(ttl);
 		}
 	}
@@ -417,6 +455,7 @@ public class OALD {
 			Element entry = root.getFirstChildElement("entry"); // все элементы
 			// printElement(0, entry, null);
 			entryW.analyzeEntry(entry);
+			if (entryW.skip) return;
 			entryW.verGroups();
 
 			/*
@@ -453,23 +492,42 @@ public class OALD {
 
 				// печатаем только если больше одного типа 21.02.11
 				entryW.getDistinctGroups();
-				OALD.display("entryW.1: " + " distinctGR="
-						+ entryW.distinctGroups);
+				//OALD.display("entryW.1: " + " distinctGR=" + entryW.distinctGroups);
 
 				if (entryW.distinctGroups.size() > 1) {
-					writeEntry(entryW, Entry.GROUPGROUPS);
-					if (entryW.posList.size() == 1
-							&& entryW.posList.get(Entry.POSNOUN) != null)
-						writeEntry(entryW, Entry.POSNOUN);
-					else if (entryW.hasPOS(Entry.POSVERB, 1)
-							&& entryW.hasPOS(Entry.POSNOUN, 2))
-						writeEntry(entryW, Entry.POSVERB + "&" + Entry.POSNOUN);
-					else if (entryW.hasPOS(Entry.POSADJ, 1)
-							&& entryW.hasPOS(Entry.POSNOUN, 2))
-						writeEntry(entryW, Entry.POSADJ + "&" + Entry.POSNOUN);
-					else if (entryW.hasPOS(Entry.POSNOUN, 2))
-						writeEntry(entryW, "smt&" + Entry.POSNOUN);
-					else
+					//writeEntry(entryW, Entry.GROUPGROUPS);
+					if (entryW.posList.size() == 1) { //&& entryW.posList.get(Entry.POSNOUN) != null) {
+						String word = entryW.getWord().toLowerCase();
+						boolean found = false;
+						for (int i = 0; i < ADJ_SUFFIXES.size(); i++) {
+							String[] sufs = ADJ_SUFFIXES.get(i);
+							for (int j = 0; j < sufs.length; j++)
+								if (word.endsWith(sufs[j])) {
+									writeEntry(entryW, "adj+" + sufs[0]
+											+ RARROW + Entry.POSNOUN);
+									found = true;
+									break;
+								}
+							if (found)
+								break;
+						}
+						if (!found)
+							writeEntry(entryW, Entry.POSNOUN);
+					} else if (entryW.posList.size() == 2) {
+						if (entryW.hasPOS(Entry.POSVERB, 1)
+								&& entryW.hasPOS(Entry.POSNOUN, 2))
+							writeEntry(entryW, Entry.POSVERB + RARROW
+									+ Entry.POSNOUN);
+						else if (entryW.hasPOS(Entry.POSADJ, 1)
+								&& entryW.hasPOS(Entry.POSNOUN, 2))
+							writeEntry(entryW, Entry.POSADJ + RARROW
+									+ Entry.POSNOUN);
+						else if (entryW.hasPOS(Entry.POSNOUN, 2))
+							writeEntry(entryW, "несколькоЧР" + RARROW
+									+ Entry.POSNOUN);
+						else
+							writeEntry(entryW, Entry.GROUPOTHER);
+					} else
 						writeEntry(entryW, Entry.GROUPOTHER);
 				}
 
@@ -558,7 +616,7 @@ public class OALD {
 
 	public void copySelected(String fullName, String fn) throws IOException {
 		cntSel++;
-		FileUtils.copy(fullName, baseDir + XMLSEL + "\\", true);
+		FileUtils.copy(fullName, baseDir + XMLSEL + fs, true);
 	}
 
 	/**
@@ -584,59 +642,58 @@ public class OALD {
 	 */
 	public static void main(String[] args) {
 
-		 // Set up a simple configuration that logs on the console.
-	     BasicConfigurator.configure();
+		startDate = new java.util.Date();
+		/*
+		// Set up a simple configuration that logs on the console.
+		BasicConfigurator.configure();
 		//For the standard levels, we have DEBUG < INFO < WARN < ERROR < FATAL.
-	    //log4.setLevel(Level.FATAL); 
-	    log4.trace("trace");
-	    log4.debug("debug");
-	    log4.info("info");
-	    log4.warn("warn");
-	    log4.error("error");
-	    log4.fatal("fatal");
+		//log4.setLevel(Level.FATAL); 
+		log4.trace("trace");
+		log4.debug("debug");
+		log4.info("info");
+		log4.warn("warn");
+		log4.error("error");
+		log4.fatal("fatal");
+		*/
 
 		parseCmd(args);
-		log4.trace("trace2");
-	    log4.debug("debug2");
-	    log4.info("info2");
-	    log4.warn("warn2");
-	    log4.error("error2");
-	    log4.fatal("fatal2");
-
-		// String baseDir = "c:\\src\\oxford\\"; //D:\src\oxford\
-		String srcFolder = baseDir + "xml.full\\";
-		if (DEBUG)
-			srcFolder = baseDir + "xml.tst\\";
-		String dstFolder = baseDir + "out\\";
-		System.out.println("Start: " + srcFolder);
+		
 		OALD oald = null;
 		try {
-			// log("Файлов: "+ UTF16toUTF8(folder + "xml\\", folder +
-			// "xml8\\"));
 			oald = new OALD();
-			// String fn = "entry31758.xml"; //rose
-			// fn = "entry00370.xml"; // Элемент Z (pos) пустой
-			// oald.parse(srcFolder + fn, fn);
-
+			// String baseDir = "c:\\src\\oxford\\"; //D:\src\oxford\
+			String srcFolder = baseDir + "xml.full" + fs;
+			String dstFolder = baseDir + "out" + fs;
+			if (DEBUG) {
+				srcFolder = baseDir + "xml.tst" + fs;
+			} else {
+				dstFolder += df2.format(startDate);
+				boolean success = (new File(dstFolder)).mkdirs();
+				if (!success) {
+					throw new Exception("Не могу создать каталог: " + dstFolder);
+				}
+				dstFolder += fs;
+			}
+			System.out.println("Start: " + srcFolder);
+	
 			System.out.println("Список файлов ...");
 			String[] list = FileUtils.dirList(srcFolder,
 					FileUtils.DirFilter.dos2unixMask("*.xml"));
 			// OALD.baseDir = baseDir;
 			OALD.srcDir = srcFolder;
 			OALD.outDir = dstFolder;
-			OALD.outFile = "oald_" + VERSION;
+			OALD.outFile = ""; //"oald_" + VERSION;
 			OALD.outExt = "doc";
 			OALD.title = "Анализ существительных "
 					+ VERSION
 					+ " Дата анализа: "
-					+ new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm:ss")
-							.format(new java.util.Date()) + "<br>\n"
+					+ df.format(startDate) + "<br>\n"
 					+ "Каталог: " + srcFolder + " Файлов: " + list.length;
 			OALD.writeLog(OALD.title + OALD.ls);
 			System.out.println("Очистка ...");
 			FileUtils.delete(dstFolder,
 					FileUtils.DirFilter.dos2unixMask("*." + OALD.outExt));
-			FileUtils.delete(baseDir + XMLSEL + "\\",
+			FileUtils.delete(baseDir + XMLSEL + fs,
 					FileUtils.DirFilter.dos2unixMask("*.xml"));
 			for (int i = 0; i < list.length; i++) {
 				oald.parse(srcFolder + list[i], list[i]);
@@ -668,9 +725,9 @@ public class OALD {
 			else if (args[i].equalsIgnoreCase("-baseDir")) {
 				i++;
 				baseDir = args[i];
-				if (!baseDir.endsWith("\\"))
-					baseDir += "\\";
-				 PropertyConfigurator.configure(baseDir+"log4j.properties");
+				if (!baseDir.endsWith(fs))
+					baseDir += fs;
+				 //PropertyConfigurator.configure(baseDir+"log4j.properties");
 			}
 		}
 

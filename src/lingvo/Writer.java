@@ -15,7 +15,7 @@ public class Writer {
 
 	public Writer() throws IOException {
 		outDir = OALD.outDir;
-		outFile = OALD.outFile;
+		outFile = Utils.isBlank(OALD.outFile) ? "" : OALD.outFile + "_";
 		outExt = OALD.outExt;
 		title = OALD.title;
 	}
@@ -25,7 +25,7 @@ public class Writer {
 		prefix = prefix.replaceAll("/", "-");
 		// prefix = prefix.replaceAll("\\", "-");
 		// System.out.println("file2="+prefix);
-		String fn = outDir + outFile + "_" + prefix + ".html." + outExt;
+		String fn = outDir + outFile + prefix + ".html." + outExt;
 		fw = new FileWriter(fn, true);
 		fw.write("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\""
 				+ "\n\"http://www.w3.org/TR/REC-html40/strict.dtd\">"
@@ -127,17 +127,20 @@ public class Writer {
 		String color = "";
 		if (Utils.isBlank(entry.getErr()) && !Entry.GROUPWAR.equals(group)) {
 			cntNoun++;
-			String row = "<tr"
-					+ color
-					+ ">\n"
+			Object[] poss = (entry.getPosList().keySet()).toArray();
+			String row = "<tr" + color + ">\n" + "  <td valign=\"top\">"
+					+ entry.getWord();
+			for (int i = 0; i < poss.length; i++) {
+				row += OALD.BR
+						+ poss[i]
+						+ "("
+						+ (Integer.parseInt((String) entry.getPosList().get(
+								poss[i])) + 1) + ")";
+			}
+			row += "</td>\n"
 					+ "  <td valign=\"top\">"
-					+ entry.getWord()
-					+ "</td>\n"
-					+ "  <td valign=\"top\">"
-					// + (Entry.isBlank(entry.getTypeList()) ? "" :
-					// entry.getTypeList())
-					+ (entry.getGroupList().toString().equals("[]") ? "" : entry
-							.getGroupList())
+					+ (entry.getGroupList().toString().equals("[]") ? ""
+							: entry.getGroupList())
 					+ "</td>\n"
 					+ "<td colspan=\"5\"><table width=\"100%\" cellspacing=\"0\" border=\"1\">";
 			for (int i = 0; i < entry.getMeanings().size(); i++) {

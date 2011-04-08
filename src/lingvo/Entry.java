@@ -128,6 +128,8 @@ public class Entry {
 	String error = "";
 	String warning = "";
 
+	public boolean skip = false;
+
 	static {
 		ignoreGroups = new HashSet<String>();
 		ignoreGroups.add("not before noun");
@@ -258,6 +260,7 @@ public class Entry {
 					// i2);
 					// if (NOUN.equalsIgnoreCase(pos.getValue())) {
 					pList.put(epos.getValue(), "" + i2);
+					OALD.totalPOSList.add(epos.getValue());
 				}
 			}
 			if (pList.size() > 0)
@@ -437,9 +440,15 @@ public class Entry {
 				if (mean.groupList.get(i).isVisible()) {
 					groupList.add(new Value(mean.groupList.get(i).getValue(),
 							mean.groupList.get(i).isVisible()));
-					mean.groupList.get(i).setVisible(false);
 				}
 			}
+			mean.groupList.clear();
+			if (groupList.size() > 1)
+				for (int i = 0; i < groupList.size(); i++)
+					if (!groupList.get(i).isVisible()) {
+						groupList.remove(i);
+						i--;
+					}
 			
 			//THE
 			if (isThe == false && mean.isThe() == true) {
@@ -646,6 +655,7 @@ public class Entry {
 			}
 		}
 		if (ret == true) {
+			skip = true;
 			OALD.cntSkip++;
 			OALD.writeLog(toString() + ": skipped");
 		}
